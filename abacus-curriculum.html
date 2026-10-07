@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Abacus Mastery — Grades 1–4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --felt: #1f352c;
+    --felt-deep: #142019;
+    --panel: #223a30;
+    --wood-dark: #2e2013;
+    --wood-mid: #4a3220;
+    --wood-light: #6b4a2c;
+    --wood-grain: #3a2818;
+    --brass: #b08a4e;
+    --brass-bright: #e0bd82;
+    --brass-dim: #7a5f37;
+    --bead-earth-hi: #fffaf0;
+    --bead-earth-mid: #ecd9ab;
+    --bead-earth-lo: #9c8452;
+    --bead-heaven-hi: #b85a4a;
+    --bead-heaven-mid: #7c2e28;
+    --bead-heaven-lo: #401511;
+    --ivory-text: #efe6d4;
+    --muted: #8fa892;
+    --good: #7fbf8f;
+    --bad: #d97b6c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(ellipse at top, var(--felt) 0%, var(--felt-deep) 75%);
+    display: flex;
+    justify-content: center;
+    padding: 28px 12px 44px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--ivory-text);
+  }
+  .app { width: 100%; max-width: 760px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  header { text-align: center; }
+  header h1 { font-family: 'Spectral', serif; font-weight: 700; font-size: clamp(26px,4.5vw,34px); margin: 0 0 3px; }
+  header p { margin: 0; color: var(--muted); font-size: 13px; }
+
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .tabs button {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--brass-dim);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tabs button.active { background: var(--brass); color: var(--felt-deep); border-color: var(--brass); font-weight: 600; }
+  .tabs button:hover:not(.active) { border-color: var(--brass); color: var(--brass-bright); }
+  .mode-tabs button { border-radius: 6px; }
+
+  .panel {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid #2c453a;
+    border-radius: 10px;
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .panel h2 { font-family: 'Spectral', serif; font-size: 20px; margin: 0; color: var(--brass-bright); }
+  .panel p.lead { margin: 0; line-height: 1.6; font-size: 14px; color: var(--ivory-text); }
+
+  .example-caption { font-size: 14px; color: var(--ivory-text); text-align: center; min-height: 40px; display: flex; align-items: center; justify-content: center; }
+  .example-nav { display: flex; align-items: center; justify-content: center; gap: 14px; }
+  .example-nav .idx { font-size: 12px; color: var(--muted); min-width: 56px; text-align: center; }
+
+  .ref-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 4px; }
+  .ref-table th, .ref-table td { border: 1px solid #2c453a; padding: 6px 10px; text-align: center; }
+  .ref-table th { color: var(--brass-bright); font-weight: 600; background: rgba(0,0,0,0.15); }
+
+  .prompt-box { background: var(--felt-deep); border: 1px solid #2c453a; border-radius: 8px; padding: 14px 16px; text-align: center; }
+  .prompt-box .prompt-text { font-size: 16px; color: var(--brass-bright); }
+  .prompt-box .prompt-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center; }
+  input[type="text"], input[type="number"] {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    padding: 8px 10px;
+    border-radius: 4px;
+    border: 1px solid #2c453a;
+    background: var(--felt-deep);
+    color: var(--ivory-text);
+    width: 110px;
+    text-align: center;
+  }
+  button.action {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 9px 16px;
+    border-radius: 6px;
+    border: 1px solid var(--brass);
+    background: transparent;
+    color: var(--brass-bright);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  button.action:hover { background: var(--brass); color: var(--felt-deep); }
+  button.action.primary { background: var(--brass); color: var(--felt-deep); }
+  button.action:disabled { opacity: 0.4; cursor: default; }
+
+  .feedback { text-align: center; font-size: 14px; min-height: 18px; }
+  .feedback.good { color: var(--good); }
+  .feedback.bad { color: var(--bad); }
+
+  .score-line { text-align: center; font-size: 12px; color: var(--muted); }
+
+  .drill-summary { text-align: center; font-size: 14px; line-height: 1.8; }
+  .drill-summary .big { font-size: 26px; color: var(--brass-bright); font-family: 'Spectral', serif; }
+
+  /* --- Abacus dock (compact, 5 rods) --- */
+  .frame-shell {
+    padding: 14px 18px;
+    background: repeating-linear-gradient(115deg, var(--wood-mid) 0 6px, var(--wood-grain) 6px 8px, var(--wood-mid) 8px 14px), linear-gradient(180deg, var(--wood-mid), var(--wood-dark));
+    border-radius: 12px;
+    box-shadow: 0 16px 34px rgba(0,0,0,0.45), inset 0 0 0 2px rgba(0,0,0,0.3);
+    overflow-x: auto;
+    max-width: 100%;
+  }
+  .rail-top, .rail-bottom { height: 13px; background: repeating-linear-gradient(90deg, var(--wood-light) 0 3px, var(--wood-mid) 3px 7px); border-radius: 3px; }
+  .rail-top { margin-bottom: 3px; } .rail-bottom { margin-top: 3px; }
+  .columns { display: flex; background: linear-gradient(180deg, #241a10, #1d150d); }
+  .column { position: relative; width: 50px; display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .rod { position: absolute; top: 2px; bottom: 2px; width: 3px; left: 50%; transform: translateX(-50%); background: linear-gradient(90deg, #7a5c34, var(--brass-bright) 45%, #7a5c34); border-radius: 2px; z-index: 0; }
+  .heaven-track { position: relative; width: 100%; height: 58px; }
+  .beam { height: 8px; width: 100%; background: linear-gradient(180deg, var(--brass-bright), var(--brass) 55%, #7a5c34); box-shadow: 0 2px 4px rgba(0,0,0,0.45); position: relative; z-index: 2; }
+  .earth-track { position: relative; width: 100%; height: 164px; }
+  .bead { position: absolute; left: 50%; width: 42px; height: 25px; transform: translate(-50%,0); clip-path: polygon(50% 2%, 96% 50%, 50% 98%, 4% 50%); cursor: pointer; z-index: 1; transition: top 0.16s ease; }
+  .bead::after { content:""; position:absolute; inset:0; clip-path: polygon(50% 10%, 78% 50%, 50% 90%, 22% 50%); background: rgba(255,255,255,0.2); }
+  .bead.earth { background: linear-gradient(155deg, var(--bead-earth-hi), var(--bead-earth-mid) 45%, var(--bead-earth-lo)); box-shadow: 0 2px 3px rgba(0,0,0,0.4); }
+  .bead.heaven { background: linear-gradient(155deg, var(--bead-heaven-hi), var(--bead-heaven-mid) 45%, var(--bead-heaven-lo)); box-shadow: 0 2px 3px rgba(0,0,0,0.4); }
+  .bead:hover { filter: brightness(1.15); }
+  .place-label { margin-top: 6px; font-size: 10px; color: var(--muted); }
+  .dock-note { font-size: 11px; color: var(--muted); text-align: center; max-width: 480px; }
+
+  @media (max-width: 520px) {
+    .column { width: 38px; } .bead { width: 32px; height: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Abacus Mastery</h1>
+    <p>Grades 1&ndash;4 &middot; from first bead to proficiency</p>
+  </header>
+
+  <nav class="tabs" id="grade-tabs"></nav>
+  <nav class="tabs mode-tabs" id="mode-tabs"></nav>
+
+  <div class="panel" id="content"></div>
+
+  <div class="frame-shell">
+    <div class="rail-top"></div>
+    <div class="columns" id="columns"></div>
+    <div class="rail-bottom"></div>
+  </div>
+  <p class="dock-note">This is your working frame &mdash; use it any time to work out an answer before you check.</p>
+</div>
+
+<script>
+/* ---------- shared abacus widget (5 rods) ---------- */
+const COLS = 5;
+const PLACE_LABELS = ["1","10","100","1K","10K"];
+const BEAD_H = 31, EARTH_TRACK_H = 164, HEAVEN_TRACK_H = 58;
+const abState = Array.from({length: COLS}, () => ({heaven:false, earth:0}));
+const columnsEl = document.getElementById('columns');
+
+function buildColumns() {
+  for (let i = COLS-1; i >= 0; i--) {
+    const col = document.createElement('div');
+    col.className = 'column'; col.dataset.col = i;
+    const rod = document.createElement('div'); rod.className = 'rod'; col.appendChild(rod);
+
+    const heavenTrack = document.createElement('div'); heavenTrack.className = 'heaven-track';
+    const heavenBead = document.createElement('div');
+    heavenBead.className = 'bead heaven'; heavenBead.dataset.col = i; heavenBead.dataset.role = 'heaven';
+    heavenTrack.appendChild(heavenBead); col.appendChild(heavenTrack);
+
+    const beam = document.createElement('div'); beam.className = 'beam'; col.appendChild(beam);
+
+    const earthTrack = document.createElement('div'); earthTrack.className = 'earth-track';
+    for (let p = 1; p <= 4; p++) {
+      const eb = document.createElement('div');
+      eb.className = 'bead earth'; eb.dataset.col = i; eb.dataset.role = 'earth'; eb.dataset.pos = p;
+      earthTrack.appendChild(eb);
+    }
+    col.appendChild(earthTrack);
+
+    const label = document.createElement('div'); label.className = 'place-label'; label.textContent = PLACE_LABELS[i];
+    col.appendChild(label);
+    columnsEl.appendChild(col);
+  }
+}
+function layoutColumn(i) {
+  const s = abState[i];
+  columnsEl.querySelector(`.bead.heaven[data-col="${i}"]`).style.top = (s.heaven ? HEAVEN_TRACK_H-25 : 0) + 'px';
+  columnsEl.querySelectorAll(`.bead.earth[data-col="${i}"]`).forEach(bead => {
+    const p = parseInt(bead.dataset.pos, 10);
+    let y;
+    if (p <= s.earth) { y = (p-1) * BEAD_H; }
+    else { const l = 4-p; y = EARTH_TRACK_H - BEAD_H - l*BEAD_H; }
+    bead.style.top = y + 'px';
+  });
+}
+function layoutAll() { for (let i=0;i<COLS;i++) layoutColumn(i); }
+function currentValue() {
+  let total = 0;
+  for (let i = COLS-1; i >= 0; i--) total = total*10 + ((abState[i].heaven?5:0) + abState[i].earth);
+  return total;
+}
+function applyDigits(val) {
+  let v = Math.max(0, Math.min(val, Math.pow(10,COLS)-1));
+  for (let i=0;i<COLS;i++) { const d = v % 10; v = Math.floor(v/10); abState[i].heaven = d>=5; abState[i].earth = d%5; }
+  layoutAll();
+}
+columnsEl.addEventListener('click', (e) => {
+  const bead = e.target.closest('.bead'); if (!bead) return;
+  const col = parseInt(bead.dataset.col, 10); const s = abState[col];
+  if (bead.dataset.role === 'heaven') { s.heaven = !s.heaven; }
+  else { const p = parseInt(bead.dataset.pos, 10); s.earth = (s.earth === p) ? p-1 : p; }
+  layoutColumn(col);
+});
+buildColumns(); layoutAll();
+
+/* ---------- curriculum ---------- */
+function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+const CURRICULUM = {
+  1: {
+    label: "Grade 1", theme: "Meet the abacus",
+    intro: "Every rod is a place value. The single bead above the bar is worth 5. Each bead below is worth 1. Slide a bead toward the bar to count it, and away from the bar to remove it.",
+    examples: [
+      { digits:[0,0,0,0,3], caption:"3 — three earth beads pushed up to the bar." },
+      { digits:[0,0,0,0,7], caption:"7 — the heaven bead (worth 5) plus two earth beads (2)." },
+      { digits:[0,0,0,4,2], caption:"42 — reading two rods together: tens rod shows 4, ones rod shows 2." },
+      { digits:[0,0,0,9,9], caption:"99 — the largest two-rod number: both rods fully raised." }
+    ],
+    makeProblem() {
+      const type = Math.random() < 0.5 ? 'read' : 'write';
+      const value = rand(1, 99);
+      return { type, value };
+    }
+  },
+  2: {
+    label: "Grade 2", theme: "Simple addition & subtraction",
+    intro: "When enough beads are free on a rod, you can add or subtract just by sliding beads directly — no special technique needed yet.",
+    examples: [
+      { digits:[0,0,0,0,2], caption:"Start at 2." },
+      { digits:[0,0,0,0,7], caption:"Lower the heaven bead to add 5 → 7." },
+      { digits:[0,0,0,3,4], caption:"34 + 5 = 39: only the ones rod changes, from 4 to 9." }
+    ],
+    makeProblem() {
+      const op = Math.random() < 0.5 ? '+' : '-';
+      let tA = rand(0,8), oA = rand(0,9), tB, oB, a, b;
+      if (op === '+') { tB = rand(0, 9-tA); oB = rand(0, 9-oA); }
+      else { tB = rand(0, tA); oB = rand(0, oA); }
+      a = tA*10+oA; b = tB*10+oB;
+      if (b === 0) return this.makeProblem();
+      return { op, a, b, answer: op === '+' ? a+b : a-b };
+    }
+  },
+  3: {
+    label: "Grade 3", theme: "Small friends & big friends (complements)",
+    intro: "Sometimes a rod doesn't have enough free beads for a direct move. Small friends (pairs that make 5: 1&4, 2&3) and big friends (pairs that make 10: 1&9, 2&8, 3&7, 4&6, 5&5) let you add or subtract by trading with the next bead or the next rod.",
+    refTable: { title: "Big friends (complements of 10)", pairs: [[1,9],[2,8],[3,7],[4,6],[5,5]] },
+    examples: [
+      { digits:[0,0,0,0,3], caption:"Start at 3. We want to add 4, but only 1 earth bead is free." },
+      { digits:[0,0,0,0,8], caption:"Small friend: 4 = 5 − 1. Lower the heaven bead (+5)…" },
+      { digits:[0,0,0,0,7], caption:"…then raise one earth bead (−1). Result: 7 = 3 + 4." },
+      { digits:[0,0,0,0,8], caption:"Now try 8 + 5. The ones rod can't hold 13, so we carry." },
+      { digits:[0,0,0,1,3], caption:"Big friend: 5 = 10 − 5. Add 1 to the tens rod, subtract 5 from the ones rod → 13." }
+    ],
+    makeProblem() {
+      const op = Math.random() < 0.5 ? '+' : '-';
+      if (op === '+') {
+        const oA = rand(1,9), oB = rand(Math.max(1,10-oA), 9);
+        const tA = rand(0,8), tB = rand(0, Math.max(0, 8-tA));
+        const a = tA*10+oA, b = tB*10+oB;
+        return { op, a, b, answer: a+b };
+      } else {
+        const oA = rand(0,8), oB = rand(oA+1, 9);
+        const tA = rand(1,9), tB = rand(0, tA-1);
+        const a = tA*10+oA, b = tB*10+oB;
+        return { op, a, b, answer: a-b };
+      }
+    }
+  },
+  4: {
+    label: "Grade 4", theme: "Multi-digit fluency & speed",
+    intro: "Now put both techniques together on bigger numbers, and work toward doing it quickly and confidently — that's proficiency.",
+    examples: [
+      { digits:[0,0,4,6,8], caption:"468 — three rods read together: hundreds 4, tens 6, ones 8." },
+      { digits:[0,1,2,3,5], caption:"468 + 767 = 1,235 — carries ripple through the hundreds, tens and ones rods." }
+    ],
+    makeProblem() {
+      const op = Math.random() < 0.5 ? '+' : '-';
+      if (op === '+') { const a = rand(100,899), b = rand(100, 999-a); return {op,a,b,answer:a+b}; }
+      const a = rand(200,999), b = rand(1,a-1); return {op,a,b,answer:a-b};
+    }
+  }
+};
+
+/* ---------- ui state ---------- */
+const ui = { grade: 1, mode: 'learn', exIndex: 0, score: {correct:0,total:0}, problem: null,
+  drill: { active:false, index:0, total:10, correct:0, startTime:0, current:null } };
+
+const gradeTabsEl = document.getElementById('grade-tabs');
+const modeTabsEl = document.getElementById('mode-tabs');
+const contentEl = document.getElementById('content');
+
+[1,2,3,4].forEach(g => {
+  const btn = document.createElement('button');
+  btn.textContent = CURRICULUM[g].label;
+  btn.onclick = () => { ui.grade = g; ui.exIndex = 0; ui.problem = null; ui.score = {correct:0,total:0}; ui.drill.active = false; render(); };
+  btn.dataset.g = g;
+  gradeTabsEl.appendChild(btn);
+});
+[['learn','Learn'],['practice','Practice'],['drill','Speed Drill']].forEach(([key,label]) => {
+  const btn = document.createElement('button');
+  btn.textContent = label;
+  btn.onclick = () => { ui.mode = key; ui.exIndex = 0; ui.problem = null; ui.drill.active = false; render(); };
+  btn.dataset.mode = key;
+  modeTabsEl.appendChild(btn);
+});
+
+function refreshTabs() {
+  [...gradeTabsEl.children].forEach(b => b.classList.toggle('active', +b.dataset.g === ui.grade));
+  [...modeTabsEl.children].forEach(b => b.classList.toggle('active', b.dataset.mode === ui.mode));
+}
+
+function render() {
+  refreshTabs();
+  const g = CURRICULUM[ui.grade];
+  contentEl.innerHTML = '';
+  if (ui.mode === 'learn') renderLearn(g);
+  else if (ui.mode === 'practice') renderPractice(g);
+  else renderDrill(g);
+}
+
+function renderLearn(g) {
+  const h2 = document.createElement('h2'); h2.textContent = g.theme;
+  const lead = document.createElement('p'); lead.className = 'lead'; lead.textContent = g.intro;
+  contentEl.append(h2, lead);
+
+  if (g.refTable) {
+    const t = document.createElement('table'); t.className = 'ref-table';
+    t.innerHTML = `<tr><th colspan="2">${g.refTable.title}</th></tr>` +
+      g.refTable.pairs.map(([x,y]) => `<tr><td>${x}</td><td>${y}</td></tr>`).join('');
+    contentEl.appendChild(t);
+  }
+
+  const ex = g.examples[ui.exIndex];
+  applyDigits(digitsToNumber(ex.digits));
+  const caption = document.createElement('div'); caption.className = 'example-caption'; caption.textContent = ex.caption;
+  const nav = document.createElement('div'); nav.className = 'example-nav';
+  const prev = document.createElement('button'); prev.className = 'action'; prev.textContent = '← Prev';
+  const idx = document.createElement('span'); idx.className = 'idx'; idx.textContent = `Example ${ui.exIndex+1} / ${g.examples.length}`;
+  const next = document.createElement('button'); next.className = 'action'; next.textContent = 'Next →';
+  prev.disabled = ui.exIndex === 0; next.disabled = ui.exIndex === g.examples.length-1;
+  prev.onclick = () => { ui.exIndex--; render(); };
+  next.onclick = () => { ui.exIndex++; render(); };
+  nav.append(prev, idx, next);
+  contentEl.append(caption, nav);
+}
+
+function digitsToNumber(digits) { return digits.reduce((acc,d) => acc*10+d, 0); }
+
+function renderPractice(g) {
+  const h2 = document.createElement('h2'); h2.textContent = 'Practice — ' + g.theme;
+  contentEl.appendChild(h2);
+
+  if (!ui.problem) ui.problem = g.makeProblem();
+  const p = ui.problem;
+
+  const box = document.createElement('div'); box.className = 'prompt-box';
+  const ptext = document.createElement('div'); ptext.className = 'prompt-text';
+  const psub = document.createElement('div'); psub.className = 'prompt-sub';
+
+  let showInput = false;
+  if (p.type === 'read') {
+    applyDigits(p.value);
+    ptext.textContent = 'What number is shown on the frame?';
+    showInput = true;
+  } else if (p.type === 'write') {
+    applyDigits(0);
+    ptext.textContent = `Show ${p.value} on the frame.`;
+    psub.textContent = 'Then press Check.';
+  } else {
+    applyDigits(p.a);
+    ptext.textContent = `${p.a} ${p.op} ${p.b} = ?`;
+    psub.textContent = `The frame starts at ${p.a}. ${p.op === '+' ? 'Add' : 'Subtract'} ${p.b}, then press Check.`;
+  }
+  box.append(ptext, psub);
+  contentEl.appendChild(box);
+
+  const row = document.createElement('div'); row.className = 'row';
+  let input;
+  if (showInput) { input = document.createElement('input'); input.type = 'text'; input.inputMode = 'numeric'; input.placeholder = '?'; row.appendChild(input); }
+  const checkBtn = document.createElement('button'); checkBtn.className = 'action primary'; checkBtn.textContent = 'Check';
+  const nextBtn = document.createElement('button'); nextBtn.className = 'action'; nextBtn.textContent = 'New problem';
+  row.append(checkBtn, nextBtn);
+  contentEl.appendChild(row);
+
+  const feedback = document.createElement('div'); feedback.className = 'feedback'; contentEl.appendChild(feedback);
+  const score = document.createElement('div'); score.className = 'score-line';
+  score.textContent = `Score: ${ui.score.correct} / ${ui.score.total}`;
+  contentEl.appendChild(score);
+
+  function markResult(isCorrect) {
+    ui.score.total++; if (isCorrect) ui.score.correct++;
+    feedback.className = 'feedback ' + (isCorrect ? 'good' : 'bad');
+    feedback.textContent = isCorrect ? 'Correct! Well done.' : 'Not quite — check the rods and try again, or start a new problem.';
+    score.textContent = `Score: ${ui.score.correct} / ${ui.score.total}`;
+  }
+
+  checkBtn.onclick = () => {
+    if (p.type === 'read') markResult(parseInt((input.value||'').trim(),10) === p.value);
+    else if (p.type === 'write') markResult(currentValue() === p.value);
+    else markResult(currentValue() === p.answer);
+  };
+  nextBtn.onclick = () => { ui.problem = g.makeProblem(); render(); };
+  if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter') checkBtn.click(); });
+}
+
+function renderDrill(g) {
+  const h2 = document.createElement('h2'); h2.textContent = 'Speed Drill — ' + g.label;
+  contentEl.appendChild(h2);
+  const d = ui.drill;
+
+  if (!d.active && d.index === 0) {
+    const lead = document.createElement('p'); lead.className = 'lead';
+    lead.textContent = `${d.total} quick questions at ${g.label} level. Answer as fast as you accurately can — your time and accuracy are tallied at the end.`;
+    const startBtn = document.createElement('button'); startBtn.className = 'action primary'; startBtn.textContent = 'Start drill';
+    startBtn.onclick = () => { d.active = true; d.index = 0; d.correct = 0; d.startTime = Date.now(); nextDrillQuestion(g); render(); };
+    contentEl.append(lead, startBtn);
+    return;
+  }
+
+  if (d.active) {
+    const q = d.current;
+    const box = document.createElement('div'); box.className = 'prompt-box';
+    const ptext = document.createElement('div'); ptext.className = 'prompt-text';
+    ptext.textContent = q.type === 'read' ? 'What number is shown?' : `${q.a} ${q.op} ${q.b} = ?`;
+    const psub = document.createElement('div'); psub.className = 'prompt-sub';
+    psub.textContent = `Question ${d.index+1} of ${d.total}`;
+    box.append(ptext, psub);
+    if (q.type === 'read') applyDigits(q.value); else applyDigits(0);
+    contentEl.appendChild(box);
+
+    const row = document.createElement('div'); row.className = 'row';
+    const input = document.createElement('input'); input.type = 'text'; input.inputMode = 'numeric'; input.placeholder = '?';
+    const submitBtn = document.createElement('button'); submitBtn.className = 'action primary'; submitBtn.textContent = 'Submit';
+    row.append(input, submitBtn); contentEl.appendChild(row);
+    const feedback = document.createElement('div'); feedback.className = 'feedback'; contentEl.appendChild(feedback);
+    input.focus();
+
+    function submit() {
+      const val = parseInt((input.value||'').trim(),10);
+      const correctAnswer = q.type === 'read' ? q.value : q.answer;
+      const isCorrect = val === correctAnswer;
+      if (isCorrect) d.correct++;
+      feedback.className = 'feedback ' + (isCorrect ? 'good' : 'bad');
+      feedback.textContent = isCorrect ? 'Correct!' : `Answer: ${correctAnswer}`;
+      submitBtn.disabled = true; input.disabled = true;
+      setTimeout(() => {
+        d.index++;
+        if (d.index >= d.total) { d.active = false; }
+        else { nextDrillQuestion(g); }
+        render();
+      }, 700);
+    }
+    submitBtn.onclick = submit;
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+    return;
+  }
+
+  // finished
+  const elapsed = ((Date.now() - d.startTime) / 1000).toFixed(1);
+  const avg = (elapsed / d.total).toFixed(1);
+  const summary = document.createElement('div'); summary.className = 'drill-summary';
+  summary.innerHTML = `<div class="big">${d.correct} / ${d.total} correct</div>
+    <div>Total time: ${elapsed}s &middot; Average: ${avg}s per question</div>`;
+  const again = document.createElement('button'); again.className = 'action primary'; again.textContent = 'Try again';
+  again.onclick = () => { d.index = 0; d.correct = 0; d.active = false; render(); };
+  contentEl.append(summary, again);
+}
+
+function nextDrillQuestion(g) {
+  if (g === CURRICULUM[1]) { ui.drill.current = { type: 'read', value: rand(1,99) }; }
+  else { const p = g.makeProblem(); ui.drill.current = { type: 'calc', a: p.a, b: p.b, op: p.op, answer: p.answer }; }
+}
+
+render();
+</script>
+</body>
+</html>
